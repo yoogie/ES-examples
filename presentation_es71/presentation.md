@@ -550,6 +550,155 @@ shard size 10-40Gb, 1 is sub-utilized
 GET _cat/thread_pool?v to see utilization
 GET _nodes/hot_threads details about what is happaning
 
+# Resumable update by query
+Ex starting by adding a index with a single field and indexing a document into it:
+```
+PUT test
+{
+  "settings": {
+  },
+  "mappings": {
+    "properties": {
+      "msg" : {
+        "type": "text"
+      }
+    }
+  }
+}
+GET test/_mapping
+PUT test/_doc/1
+{
+  "msg" : "HI"
+}
+GET test/_search
+```
+
+Before starting to update the index, add a numeric field to keep track of documents already updated:
+```
+PUT test/_mapping
+{
+  "properties": {
+    "run" : {
+      "type" : "short"
+    }
+  }
+}
+GET test/_mapping
+GET test/_search
+```
+
+Then run the updated wanted and have it limited to only update untouched documents:
+```
+POST test/_update_by_query
+{
+  "query": {
+    "bool": {
+      "must_not": [
+        {
+          "range": {
+            "run": {
+              "gte": 1
+            }
+          }
+        }
+      ]
+    }
+  },
+  "script" : {
+    "source" : """
+    if (ctx._source.containsKey("msg")) {
+      ctx._source.msg = ctx._source.msg.toLowerCase()
+    }
+    ctx._source.run = 1;
+    """
+  }
+}
+GET test/_search
+```
+
+Add a new document and re run the update query:
+```
+PUT test/_doc/2
+{
+  "msg" : "BYE"
+}
+GET test/_search
+POST test/_update_by_query
+{
+  "query": {
+    "bool": {
+      "must_not": [
+        {
+          "range": {
+            "run": {
+              "gte": 1
+            }
+          }
+        }
+      ]
+    }
+  },
+  "script" : {
+    "source" : """
+    if (ctx._source.containsKey("msg")) {
+      ctx._source.msg = ctx._source.msg.toLowerCase()
+    }
+    ctx._source.run = 1;
+    """
+  }
+}
+```
+As can be seen in the result only one document was updated:
+```
+{
+  "took" : 6,
+  "timed_out" : false,
+  "total" : 1,
+  "updated" : 1,
+  "deleted" : 0,
+  "batches" : 1,
+  "version_conflicts" : 0,
+  "noops" : 0,
+  "retries" : {
+    "bulk" : 0,
+    "search" : 0
+  },
+  "throttled_millis" : 0,
+  "requests_per_second" : -1.0,
+  "throttled_until_millis" : 0,
+  "failures" : [ ]
+}
+```
+
+Re run the update and verify that no document was updated:
+```
+GET test/_search
+POST test/_update_by_query
+{
+  "query": {
+    "bool": {
+      "must_not": [
+        {
+          "range": {
+            "run": {
+              "gte": 1
+            }
+          }
+        }
+      ]
+    }
+  },
+  "script" : {
+    "source" : """
+    if (ctx._source.containsKey("msg")) {
+      ctx._source.msg = ctx._source.msg.toLowerCase()
+    }
+    ctx._source.run = 1;
+    """
+  }
+}
+```
+
 # Performace
 ## Query caching 
 There is lots to be said about caching in ES. But one easy rule to keep in mind is that any query in filter context is cached as a bitfield. Since no score is calculated the result is a simple 0 or 1 for each document, making it very sutiable for caching and henche it will, making any subsequent queries using the same filter super fast. 
