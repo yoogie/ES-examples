@@ -544,3 +544,12 @@ metricbeat.modules:
 - module: system
   cpu.metrics: [percentages, normalized_percentages]
 </code>
+
+cluster, <10ms idealy
+shard size 10-40Gb, 1 is sub-utilized
+GET _cat/thread_pool?v to see utilization
+GET _nodes/hot_threads details about what is happaning
+
+# Performace
+## Query caching 
+There is lots to be said about caching in ES. But one easy rule to keep in mind is that any query in filter context is cached as a bitfield. Since no score is calculated the result is a simple 0 or 1 for each document, making it very sutiable for caching and henche it will, making any subsequent queries using the same filter super fast. 
