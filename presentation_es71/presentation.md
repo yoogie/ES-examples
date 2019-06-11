@@ -377,18 +377,156 @@ Result:
 
 ```
 
-## pipeline
-Since there has been a lot of work done in the ingest pipeline world, a logical edition is also the pipeline processor. It makes it possible to reuse pipelines. I.e apply the same pice of logic into multiple workflows. Something to notice here though is that only the final result of all processing is what will enter the elasticsearch database. 
-We had a missunderstanding when this processor was first relesed and tried to reuse some logic that dropted a document in one pipeline and would index it in an other. However, if droped in one it is droped in all.
-
-Ex:
-
+## split 
+The split processor can be used to split a field into a list of values. A useful example is when data is passed in a string but the data is more useful as a list of keywords.
+Ex parsing the localities of a document and store it as a list of keywords:
 ```
+POST _ingest/pipeline/_simulate
+{
+  "pipeline": {
+    "description": "Split locale text into keyword list",
+    "processors": [
+      {
+        "split": {
+          "field": "locales",
+          "separator": ","
+        }
+      }
+    ]
+  },
+  "docs": [
+    {
+      "_source": {
+        "locales": "en-uk,en-us"
+      }
+    },
+    {
+      "_source": {
+        "locales": "sv-se"
+      }
+    }
+    ]
+}
 ```
+
 Result:
+```
+{
+  "docs" : [
+    {
+      "doc" : {
+        "_index" : "_index",
+        "_type" : "_doc",
+        "_id" : "_id",
+        "_source" : {
+          "locales" : [
+            "en-uk",
+            "en-us"
+          ]
+        },
+        "_ingest" : {
+          "timestamp" : "2019-06-11T19:30:38.9647143Z"
+        }
+      }
+    },
+    {
+      "doc" : {
+        "_index" : "_index",
+        "_type" : "_doc",
+        "_id" : "_id",
+        "_source" : {
+          "locales" : [
+            "sv-se"
+          ]
+        },
+        "_ingest" : {
+          "timestamp" : "2019-06-11T19:30:38.9647143Z"
+        }
+      }
+    }
+  ]
+}
+```
 
+## script
+If there is no generic processor that fits your need, there is always the script processor.
+Ex calculating the lenght of a field and storing it as a new field:
 ```
+POST _ingest/pipeline/_simulate
+{
+  "pipeline": {
+    "description": "Store message lenght as a field",
+    "processors": [
+      {
+        "script": {
+          "source": """
+          if(ctx.containsKey("message")) {
+            ctx.message_len = ctx.message.length();
+          }
+          else {
+            ctx.message_len = 0;
+          }
+          """
+        }
+      }
+    ]
+  },
+  "docs": [
+    {
+      "_source": {
+        "message": "This is my story"
+      }
+    },
+    {
+      "_source": {
+        "message": ""
+      }
+    }
+    ]
+}
 ```
+
+Result:
+```
+{
+  "docs" : [
+    {
+      "doc" : {
+        "_index" : "_index",
+        "_type" : "_doc",
+        "_id" : "_id",
+        "_source" : {
+          "message" : "This is my story",
+          "message_len" : 16
+        },
+        "_ingest" : {
+          "timestamp" : "2019-06-11T19:32:35.4231577Z"
+        }
+      }
+    },
+    {
+      "doc" : {
+        "_index" : "_index",
+        "_type" : "_doc",
+        "_id" : "_id",
+        "_source" : {
+          "message" : "",
+          "message_len" : 0
+        },
+        "_ingest" : {
+          "timestamp" : "2019-06-11T19:32:35.4231577Z"
+        }
+      }
+    }
+  ]
+}
+```
+
+## pipeline - pipeline
+Since there has been a lot of work done in the ingest pipeline world, a logical edition is also the pipeline processor. It makes it possible to reuse pipelines. I.e apply the same pice of logic into multiple workflows. Something to notice here though is that only the final result of all processing is what will enter the elasticsearch database. 
+We had a missunderstanding when this processor was first relesed and tried to reuse some logic that dropped a document in one pipeline and would index it in an other. However, if droped in one it is droped in all.
+
+
 # Beats?
 ## ECS?
 Any good example for common schema?
