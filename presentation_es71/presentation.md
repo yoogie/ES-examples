@@ -394,3 +394,15 @@ Result:
 Any good example for common schema?
 ## Module?
 Create our own module, add kibana queries etc. Have it implement ECS?
+
+
+Settings added in metricbeat.xml to enable monitoring of windows services and to get cpu in normalized values
+<code>
+metricbeat.modules:
+- module: windows
+  metricsets: ["service"]
+  period: 60s
+ 
+- module: system
+  cpu.metrics: [percentages, normalized_percentages]
+</code>

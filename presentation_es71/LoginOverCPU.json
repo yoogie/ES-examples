@@ -1,0 +1,20 @@
+[
+  {
+    "_id": "7139a7b0-8c35-11e9-b130-5ff406927eb2",
+    "_type": "visualization",
+    "_source": {
+      "title": "LoginOverCPU",
+      "visState": "{\n  \"title\": \"LoginOverCPU\",\n  \"type\": \"metrics\",\n  \"params\": {\n    \"annotations\": [\n      {\n        \"fields\": \"winlog.event_data.TargetUserName,winlog.keywords,winlog.event_data.SubjectUserName\",\n        \"template\": \"{{winlog.event_data.SubjectUserName}}: {{winlog.event_data.TargetUserName}} {{winlog.keywords}}\",\n        \"index_pattern\": \"winlogbeat-*\",\n        \"query_string\": \"winlog.event_id:4624 AND !winlog.event_data.TargetUserName:SYSTEM\",\n        \"color\": \"rgba(0,6,255,1)\",\n        \"icon\": \"fa-tag\",\n        \"id\": \"94bd1b00-8c34-11e9-ada7-c373c3e1d4be\",\n        \"ignore_global_filters\": 1,\n        \"ignore_panel_filters\": 1,\n        \"time_field\": \"@timestamp\"\n      }\n    ],\n    \"axis_formatter\": \"number\",\n    \"axis_position\": \"left\",\n    \"axis_scale\": \"normal\",\n    \"default_index_pattern\": \"metricbeat-*\",\n    \"id\": \"61ca57f0-469d-11e7-af02-69e470af7417\",\n    \"index_pattern\": \"\",\n    \"interval\": \"auto\",\n    \"series\": [\n      {\n        \"axis_position\": \"right\",\n        \"chart_type\": \"line\",\n        \"color\": \"#68BC00\",\n        \"fill\": 0.5,\n        \"formatter\": \"number\",\n        \"id\": \"61ca57f1-469d-11e7-af02-69e470af7417\",\n        \"label\": \"CPU usage\",\n        \"line_width\": 1,\n        \"metrics\": [\n          {\n            \"field\": \"system.cpu.total.norm.pct\",\n            \"id\": \"61ca57f2-469d-11e7-af02-69e470af7417\",\n            \"type\": \"avg\"\n          }\n        ],\n        \"point_size\": 1,\n        \"separate_axis\": 0,\n        \"split_mode\": \"everything\",\n        \"stacked\": \"none\"\n      }\n    ],\n    \"show_grid\": 1,\n    \"show_legend\": 1,\n    \"time_field\": \"@timestamp\",\n    \"type\": \"timeseries\"\n  },\n  \"aggs\": []\n}",
+      "uiStateJSON": "{}",
+      "description": "",
+      "version": 1,
+      "kibanaSavedObjectMeta": {
+        "searchSourceJSON": "{\n  \"query\": {\n    \"language\": \"kuery\",\n    \"query\": \"\"\n  },\n  \"filter\": []\n}"
+      }
+    },
+    "_migrationVersion": {
+      "visualization": "7.0.1"
+    },
+    "_references": []
+  }
+]
