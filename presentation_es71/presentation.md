@@ -527,12 +527,14 @@ Since there has been a lot of work done in the ingest pipeline world, a logical 
 We had a missunderstanding when this processor was first relesed and tried to reuse some logic that dropped a document in one pipeline and would index it in an other. However, if droped in one it is droped in all.
 
 
-# Beats?
-## ECS?
-Any good example for common schema?
-## Module?
-Create our own module, add kibana queries etc. Have it implement ECS?
+# ECS
+Elastic common schema has been implemented across large parts of the Elastic Stack. Since beats 7.0 all beats and beat modules genereate ECS format events by default.
+The ECS provides common naming conventions for fields and sets or nested fields. Examples for a set is the host parameters, host.ip, host.hostname etc. The strive here is to exclude redundant naming, hostname being an exception.
+The ECS has turned the default mapping around, instead of doing the default my_filed as text annd my_field.keyword for keyword the ECS has my_field as keyword and my_field.text for text only for where free text search is needed. There are exceptions to this rule aswell, the fileds message and error.message are only indexed as text for free text search, due to legacy reasons stretching all the old beats.
 
+
+# Cross index annotaion
+One nice feature of Kibana vizualisations is to add anotations between indices. Ex plotting the overall cpu usage in a timelion graph and annotate critical errors from an application logfile. Or as in the LoginOverCPU exampel vizualisation where the successfull logon events from the windows eventlog is annotated over the normalized cpu usage from metricbeat.
 
 Settings added in metricbeat.xml to enable monitoring of windows services and to get cpu in normalized values
 <code>
@@ -541,14 +543,26 @@ metricbeat.modules:
   metricsets: ["service"]
   period: 60s
  
-- module: system
+ 
+ - module: system
   cpu.metrics: [percentages, normalized_percentages]
 </code>
 
-cluster, <10ms idealy
-shard size 10-40Gb, 1 is sub-utilized
-GET _cat/thread_pool?v to see utilization
-GET _nodes/hot_threads details about what is happaning
+# Performance
+## Top k hits
+https://www.elastic.co/blog/faster-retrieval-of-top-hits-in-elasticsearch-with-block-max-wand
+
+## HW and sizing guidelines
+Even though ES scales horizontaly, don't underestimate decent hw. Elatic states that RAM is likely to be the limitation and that 64Gb should be used in each node, cpu is usualy not the bottle neck and 2-8 core cpus likely to cope. The disks should be the fasts affordable. Since ES it self takes care of redundancy any raid beside 0 is never to be used. Be careful if running in a cloude environment since any disc access that is not local is likely to be slow. Does not matter if the SAN/NAS is "fast" there is still network overhead to be accounted for.
+Avoid netork latencied as far as possible, there is no support for spanning a cluster across different datacenters. If a failover scenario is needed the cross cluster replication functionality available in the gold/permium is adviced. The latency withina cluster shoudle idealy be <10ms.
+
+However, dont over size machines. If the performance is not enough a new node should keep up with the others, hench using huge machines will need huch investigations to scale. Medium sized machines are easier to spin up more of. Also it is easier to balance different resources such as RAM /CPU.
+
+The shard sizes between 10-40Gb is a good spot. Avoid shardexplosions since each shard adds overhead when it commes to lucene datastructes and cluster state information. However keep in mind that the size of a single segment should never be lager than 5Gb since at that point automatic merges are disabled.
+
+## Tools
+<code>GET _cat/thread_pool?v </code>to see utilization
+<code>GET _nodes/hot_threads </code>details about what is happaning
 
 # Resumable update by query
 Ex starting by adding a index with a single field and indexing a document into it:
