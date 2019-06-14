@@ -376,6 +376,8 @@ Result:
 }
 
 ```
+DELETE _ingest/pipeline/dropper
+DELETE slask
 
 ## split 
 The split processor can be used to split a field into a list of values. A useful example is when data is passed in a string but the data is more useful as a list of keywords.
