@@ -1,0 +1,8 @@
+GET test_synonym/_search
+{
+  "query": {
+    "match": {
+      "test": "foo"
+    }
+  }
+}
