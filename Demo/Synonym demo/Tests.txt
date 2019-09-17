@@ -6,3 +6,30 @@ GET test_synonym/_search
     }
   }
 }
+
+GET test_synonym/_search
+{
+  "query": {
+    "match": {
+      "test": "ipod"
+    }
+  }
+}
+
+GET test_synonym/_search
+{
+  "query": {
+    "match": {
+      "test": "laptop"
+    }
+  }
+}
+
+GET test_synonym/_search
+{
+  "query": {
+    "match": {
+      "test": "universe"
+    }
+  }
+}

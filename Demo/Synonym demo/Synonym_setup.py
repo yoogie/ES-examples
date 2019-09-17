@@ -61,6 +61,10 @@ def setup_data(synonym_index):
     es.index(index=synonym_index, id=2, body={"test": "foo"})
     es.index(index=synonym_index, id=3, body={"test": "baz"})
 
+    es.index(index=synonym_index, id=4, body={"test": "notebook"})
+    es.index(index=synonym_index, id=5, body={"test": "i-pod"})
+    es.index(index=synonym_index, id=6, body={"test": "cosmos"})
+
 def delete_data(synonym_index):
     print '=== DELETING INDEX DATA ==='
     es.delete(index=synonym_index, id=1)
